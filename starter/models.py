@@ -6,6 +6,9 @@ class NearEarthObject(object):
     """
 
     def __init__(self, **kwargs):
+        self.neo_reference_id = kwargs["neo_reference_id"]
+        self.name = kwargs["name"]
+        self.nasa_jpl_url = kwargs["nasa_jpl_url"]
         """
         :param kwargs:    dict of attributes about a given Near Earth Object, only a subset of attributes used
         """
@@ -30,6 +33,10 @@ class OrbitPath(object):
     """
 
     def __init__(self, **kwargs):
+
+        self.id = kwargs["id"]
+
+
         """
         :param kwargs:    dict of attributes about a given orbit, only a subset of attributes used
         """
