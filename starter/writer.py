@@ -1,3 +1,4 @@
+import csv
 from enum import Enum
 
 
@@ -22,8 +23,8 @@ class NEOWriter(object):
     """
 
     def __init__(self):
-        # TODO: How can we use the OutputFormat in the NEOWriter?
-        pass
+        self.output_format = OutputFormat.list()
+        print("DEBUG: ", OutputFormat.list())
 
     def write(self, format, data, **kwargs):
         """
