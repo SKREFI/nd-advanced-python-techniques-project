@@ -21,6 +21,10 @@ class NEODatabase(object):
         self.NEOList = {}
         self.OrbitList = []
 
+
+    def __getitem__(self, key):
+        return self.NEOList.get(key)
+
     def load_data(self, filename=None):
         """
         Loads data from a .csv file, instantiating Near Earth Objects and their OrbitPaths by:
@@ -33,41 +37,33 @@ class NEODatabase(object):
 
         if not (filename or self.filename):
             raise Exception('Cannot load data, no filename provided')
-
         filename = filename or self.filename
+
         with open(filename, 'r') as csvfile:
             reader = csv.DictReader(csvfile, delimiter=',')
-            print(type(reader))
+            # r is a dictionary wich represents each each row in the csv
             for r in reader:
-                NEO = NearEarthObject(
-                    id=r.get("id"),
-                    name=r.get("name"),
-                    is_hazard=r['is_potentially_hazardous_asteroid'],
-                    min_diam=r.get("estimated_diameter_min_kilometers"),
-                    max_diam=r.get("estimated_diameter_max_kilometers")
-                )
-                OP = OrbitPath(
-                    id = r.get("id"),
-                    miss=r.get("miss_distance_kilometers"),
-                    approch_date=r.get("close_approach_date"),
-                    speed=r.get("kilometers_per_hour")
-                )
+                i = r.get("id")
 
-                # small = {
-                #     "name": r.get("name"),
-                #     "is_hazard": r['is_potentially_hazardous_asteroid'],
-                #     "min_diam": r.get("estimated_diameter_min_kilometers"),
-                #     "max_diam": r.get("estimated_diameter_max_kilometers")
-                # }
+                neo = {
+                    "id":i,
+                    "name": r.get("name"),
+                    "is_hazard": r['is_potentially_hazardous_asteroid'],
+                    "min_diam": r.get("estimated_diameter_min_kilometers"),
+                    "max_diam": r.get("estimated_diameter_max_kilometers")
+                }
 
-                # big = {
-                #     "id": r.get("id"),
-                #     "obj": small
-                # }
+                # Mixed up a bit, previously I have build an other dict, now I am calling directly the constructor
+                op = OrbitPath(**r)
+                self.OrbitList.append(op)
 
-                # NEO = NearEarthObject(d)
-
-                print(big, end="\n\n")
+                # I am giving the key value of id so I have acces to the object with __getitem__
+                # if id of the NEO is already in the DB, add only it's orbit
+                if i not in self.NEOList.keys():
+                    self.NEOList[i] = NearEarthObject(**neo)
+                    self.NEOList[i].orbits.append(op)
+                else:
+                    self.NEOList[i].orbits.append(op)
 
         # TODO: Load data from csv file.
         # TODO: Where will the data be stored?

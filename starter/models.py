@@ -28,20 +28,16 @@ class NearEarthObject(object):
 class OrbitPath(object):
     """
     Object containing data describing a Near Earth Object orbit.
-
-    # TODO: You may be adding instance methods to OrbitPath to help you implement search and output data.
     """
-
+    # id, miss, approch_date, speed
     def __init__(self, **d):
-        self.id = d.get("id")
-        self.miss = d.get("miss")
-        self.approch_date = d.get("approch_date")
-        self.speed = d.get("speed")
-
         """
         :param kwargs:    dict of attributes about a given orbit, only a subset of attributes used
         """
-        # TODO: What instance variables will be useful for storing on the Near Earth Object?
+        self.id = d.get("id")
+        self.miss = d.get("miss_distance_kilometers")
+        self.date = d.get("close_approach_date")  
+        self.speed = d.get("kilometers_per_hour")  
 
     def __repr__(self):
-        return "Id: {}\nMiss Distance: {}\nApproach Date: {}\nSpeed: {}".format(self.id, self.miss, self.approch_date, self.speed)
+        return "\nMiss Distance/Date/Speed = {} | {} | {}".format(self.miss, self.date, self.speed)
