@@ -6,11 +6,25 @@ class NearEarthObject(object):
     # It should not be the case to deafult them to None since every field shoud have those values, but just because I can I do it
     def __init__(self, **d):
         self.orbits = []
-        self.id = d.get("id")
+        self.id = int(d.get("id"))
         self.name = d.get("name")
-        self.is_hazard = d.get("is_hazard")
-        self.min_diam = d.get("min_diam")
-        self.max_diam = d.get("max_diam")
+        self.is_hazard = False
+        if d.get("is_hazard") == "True":
+            self.is_hazard = True
+        self.min_diam = float(d.get("min_diam"))
+        self.max_diam = float(d.get("max_diam"))
+
+    # def __getitem__(self, key):
+    #     if key == "id":
+    #         return self.id
+    #     if key == "name":
+    #         return self.name
+    #     if key == "is_hazard":
+    #         return self.is_hazard
+    #     if key == "min_diam":
+    #         return self.min_diam
+    #     if key == "max_diam":
+    #         return self.max_diam
 
     def __repr__(self):
         return "Orbits: {}\nId: {}\nName: {}\nIs Hazardous: {}\nMin Diameter: {}\nMax Diameter: {}".format(self.orbits, self.id, self.name, self.is_hazard, self.min_diam, self.max_diam)
@@ -30,14 +44,15 @@ class OrbitPath(object):
     Object containing data describing a Near Earth Object orbit.
     """
     # id, miss, approch_date, speed
+
     def __init__(self, **d):
         """
         :param kwargs:    dict of attributes about a given orbit, only a subset of attributes used
         """
         self.id = d.get("id")
         self.miss = d.get("miss_distance_kilometers")
-        self.date = d.get("close_approach_date")  
-        self.speed = d.get("kilometers_per_hour")  
+        self.date = d.get("close_approach_date")
+        self.speed = (d.get("kilometers_per_hour"))
 
     def __repr__(self):
         return "\nMiss Distance/Date/Speed = {} | {} | {}".format(self.miss, self.date, self.speed)

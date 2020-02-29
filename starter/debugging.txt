@@ -1,0 +1,16 @@
+Tasks:
+0 - Done
+1 - Done
+2 - Done
+3 - 
+4 - Done
+
+Bugs and Fixes I had so far:
+
+- comparing is_hazard field of the NEO with True/False will always return False
+Sol: As everything is a string, I had to compare with str of True/False
+   
+   - This leeds to some other bug in `my_main.py` where I am debuggin code, converting to boolean in the NEO Constructor
+     comparing `is_hazard` field with some value of True or False I had problems, it will return only True values
+     latter on, I realized that bool("False") will return a True so I had to make an explicit `if` in the Constructor
+

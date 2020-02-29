@@ -19,6 +19,10 @@ class NEODatabase(object):
         # TODO: Add relevant instance variables for this.
         self.filename = filename
         self.NEOList = {}
+        # This is kind of useless, for now, I don't find a use for it, it came by default so
+        # I am keeping it in case I need it latter but NEOList is a dictionary which contains every
+        # single uniq NEO every single one having a list of orbits, given the data base, after analyzeing it a bit,
+        # most of them have only one orbit, the biggest has 8 with the ID: 2164207
         self.OrbitList = []
 
 
