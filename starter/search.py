@@ -65,12 +65,12 @@ class Query(object):
 
         if self.filter:
             options = Filter.create_filter_options(self.filter)
-            for key, val in options.items():
+            for id, val in options.items():
                 for filter in val:
                     # l = list = splited so 0 field 1 operator 2 value
                     l = filter.split(":")
                     # I would have used Object as the first argument...
-                    filters.append(Filter(l[0], key, l[1], l[2]))
+                    filters.append(Filter(l[0], id, l[1], l[2]))
 
         return Query.Selectors(data_search, self.number, filters, no_returned_obj)
 
@@ -82,8 +82,7 @@ class Filter(object):
     """
     # Personal wish to filter by id, good for debugging
     Options = {
-        "min_diam": "min_diam",
-        "max_diam": "max_diam",
+        "diameter": ["min_diam","max_diam"],
         "id": "id",
         "speed": "speed",
         "is_hazardous": "is_hazard",
@@ -139,7 +138,9 @@ class Filter(object):
                 print("LOG:", "Filter \"{}\" not found!".format(filt))
         return ret
 
-    def apply(self, db):
+    def apply(self, **d):
+        db = d.get("database", None)
+        neos = d.get("filtered_list", None)
         """
         Function that applies the filter operation onto a set of results
 
@@ -149,29 +150,41 @@ class Filter(object):
         filtered_neo = []
         # counter intuitive parameter name (results), more like db or something
         # results.NEOList # the dict in database
-        for key in db.NEOList:
-            neo = db[key]
-            f = Filter.Options.get(self.field)
-            o = Filter.Operators.get(self.operation)
-            if self.object == "NEO":
-                v = getattr(neo, f)
-                if o(v, ):
-                    filtered_neo.append(neo)
-            elif self.object == "OP":
-                op_list = neo.orbits
-                for i in range(len(op_list)):
-                    v = getattr(op_list[i], f)
-                    if o(v, self.value):
-                        neo.orbit_to_write = i
+        if db == None:
+            for neo in neos:
+                f = Filter.Options.get(self.field)
+                o = Filter.Operators.get(self.operation)
+                if self.object == "NEO":
+                    if o(getattr(neo, f), self.value):
                         filtered_neo.append(neo)
-                        # here we continue because we want only uniq neo
-                        # so if a neo have multiples orbits which meet
-                        # conditions neo will be added multiple times
-                        continue
-            else:
-                # Shouldn't ever happen here and usually I would create a log class
-                print("LOG:", "Object not matched")
-        return filtered_neo
+                elif self.object == "OP":
+                    for i in range(len(neo.orbits)):
+                        if o(getattr(neo.orbits[i], f), self.value):
+                            neo.orbit_to_write = i
+                            filtered_neo.append(neo)
+                            continue
+            return filtered_neo
+        else:
+            for id in db.NEOList:
+                neo = db[id]
+                f = Filter.Options.get(self.field)
+                o = Filter.Operators.get(self.operation)
+                if self.object == "NEO":
+                    v = getattr(neo, f)
+                    if o(v, self.value):
+                        filtered_neo.append(neo)
+                elif self.object == "OP":
+                    op_list = neo.orbits
+                    for i in range(len(op_list)):
+                        v = getattr(op_list[i], f)
+                        if o(v, self.value):
+                            neo.orbit_to_write = i
+                            filtered_neo.append(neo)
+                            # here we continue because we want only uniq neo
+                            # so if a neo have multiples orbits which meet
+                            # conditions neo will be added multiple times
+                            continue
+            return filtered_neo
 
 
 class NEOSearcher(object):
@@ -187,6 +200,7 @@ class NEOSearcher(object):
         """
         self.db = db
         # TODO: What kind of an instance variable can we use to connect DateSearch to how we do search?
+        # I am not sure of what you mean, I don't need anything else
 
     def get_objects(self, query):
         """
@@ -206,12 +220,22 @@ class NEOSearcher(object):
         filters = query[2]
 
         results = []
-        for f in filters:
-            results = f.apply(self.db)
-        return results
+        if (query.date_search.type == DateSearch.equals):
+            f = Filter("date", "OP", "=", query.date_search.values)
+            results = f.apply(**{"database": self.db})
+        elif (query.date_search.type == DateSearch.between and query.date_search.values[0] and query.date_search.values[1]):
+            start_date = query.date_search.values[0]
+            end_date = query.date_search.values[1]
+            for id in self.db.NEOList:
+                for orbit in self.db[id].orbits:
+                    if start_date <= orbit.date <= end_date:
+                        results.append(self.db[id])
+        if len(filters):
+            if len(results) == 0:
+                results = filters[0].apply(**{"database": self.db})
+            else:
+                results = filters[0].apply(**{"filtered_list": results})
+            for i in range(1, len(filters)):
+                results = filters[i].apply(**{"filtered_list": results})
 
-        # print(query.date_search.values)
-        # TODO: This is a generic method that will need to understand, using DateSearch, how to implement search
-        # TODO: Write instance methods that get_objects can use to implement the two types of DateSearch your project
-        # TODO: needs to support that then your filters can be applied to. Remember to return the number specified in
-        # TODO: the Query.Selectors as well as in the return_type from Query.Selectors
+        return results[:query.number] if len(results) > 0 else None

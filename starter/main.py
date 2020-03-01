@@ -109,18 +109,7 @@ if __name__ == '__main__':
     # parser.add_argument("--end_date", default=None)
 
     args = parser.parse_args()
-    old_var_args = vars(args)
-
-    var_args = {
-        "date": "2020-01-01",
-        "filename": None,
-        "filter": ["distance:>:74768000"],
-        "number": 10,
-        "output": "display",
-        "return_object": "NEO",
-        "start_date": None,
-        "end_date": None,
-    }
+    var_args = vars(args)
 
     # Load Data
     if args.filename:

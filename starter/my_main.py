@@ -19,21 +19,18 @@ db.load_data()
 # if len(db.NEOList[key].orbits) == 8:
 #     obj.append(db.NEOList[key])
 
-
+# "distance:>:74768000"
 query_selectors = Query(**{
     "output": "display",
     "return_object": "NEO",
-    "date": "2020-01-01",
-    "start_date": None,
-    "end_date": None,
+    "start_date": "2020-01-05",
+    "end_date": "2020-01-10",
+    # "date": "2020-01-01",
     "filename": None,
     "number": 10,
-    "filter": ["distance:>:74768000"]
+    "filter": ["is_hazardous:=:True"]
 }).build_query()
 
-# f = Filter.create_filter_options(["is_hazardous:=:False", "date:=:2020-01-10"])
-# print(f)
 results = NEOSearcher(db).get_objects(query_selectors)
-print(results)
-# result = (NEOWriter().write("display", results,
-#                             output_filename=output_filename))
+(NEOWriter().write("csv_file", results,
+                   output_filename=output_filename))
