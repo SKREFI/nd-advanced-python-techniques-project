@@ -1,8 +1,10 @@
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from enum import Enum
 
 from exceptions import UnsupportedFeature
 from models import NearEarthObject, OrbitPath
+
+import operator
 
 
 class DateSearch(Enum):
@@ -26,15 +28,21 @@ class Query(object):
     to structure the query information into a format the NEOSearcher can use for date search.
     """
 
-    Selectors = namedtuple('Selectors', ['date_search', 'number', 'filters', 'return_object'])
+    Selectors = namedtuple(
+        'Selectors', ['date_search', 'number', 'filters', 'return_object'])
     DateSearch = namedtuple('DateSearch', ['type', 'values'])
     ReturnObjects = {'NEO': NearEarthObject, 'Path': OrbitPath}
 
-    def __init__(self, **kwargs):
+    def __init__(self, **d):
         """
         :param kwargs: dict of search query parameters to determine which SearchOperation query to use
         """
-        # TODO: What instance variables will be useful for storing on the Query object?
+        self.date = d.get('date')
+        self.end_date = d.get('end_date')
+        self.start_date = d.get('start_date')
+        self.number = d.get('number')
+        self.filter = d.get('filter')
+        self.return_object = d.get('return_object')
 
     def build_query(self):
         """
@@ -44,7 +52,27 @@ class Query(object):
         :return: QueryBuild.Selectors namedtuple that translates the dict of query options into a SearchOperation
         """
 
-        # TODO: Translate the query parameters into a QueryBuild.Selectors object
+        if self.date:
+            data_search = Query.DateSearch(DateSearch.equals, self.date)
+        else:
+            data_search = Query.DateSearch(DateSearch.between, [
+                self.start_date, self.end_date])
+
+        # number of returned objects after applying the filters
+        no_returned_obj = Query.ReturnObjects.get(self.return_object)
+
+        filters = []
+
+        if self.filter:
+            options = Filter.create_filter_options(self.filter)
+            for key, val in options.items():
+                for filter in val:
+                    # l = list = splited so 0 field 1 operator 2 value
+                    l = filter.split(":")
+                    # I would have used Object as the first argument...
+                    filters.append(Filter(l[0], key, l[1], l[2]))
+
+        return Query.Selectors(data_search, self.number, filters, no_returned_obj)
 
 
 class Filter(object):
@@ -52,12 +80,23 @@ class Filter(object):
     Object representing optional filter options to be used in the date search for Near Earth Objects.
     Each filter is one of Filter.Operators provided with a field to filter on a value.
     """
+    # Personal wish to filter by id, good for debugging
     Options = {
-        # TODO: Create a dict of filter name to the NearEarthObject or OrbitalPath property
+        "min_diam": "min_diam",
+        "max_diam": "max_diam",
+        "id": "id",
+        "speed": "speed",
+        "is_hazardous": "is_hazard",
+        "distance": "miss",
+        "date": "date"
     }
 
     Operators = {
-        # TODO: Create a dict of operator symbol to an Operators method, see README Task 3 for hint
+        "=": operator.eq,
+        ">": operator.gt,
+        ">=": operator.ge,
+        "<": operator.lt,
+        "<=": operator.le
     }
 
     def __init__(self, field, object, operation, value):
@@ -70,7 +109,13 @@ class Filter(object):
         self.field = field
         self.object = object
         self.operation = operation
-        self.value = value
+        try:
+            self.value = float(value)
+        except:
+            self.value = value
+
+    def __repr__(self):
+        return "{}: {} {} {}".format(self.object, self.field, self.operation, self.value)
 
     @staticmethod
     def create_filter_options(filter_options):
@@ -80,17 +125,53 @@ class Filter(object):
         :param input: list in format ["filter_option:operation:value_of_option", ...]
         :return: defaultdict with key of NearEarthObject or OrbitPath and value of empty list or list of Filters
         """
+        ret = defaultdict(list)
 
-        # TODO: return a defaultdict of filters with key of NearEarthObject or OrbitPath and value of empty list or list of Filters
+        for opt in filter_options:
+            filt = opt.split(":")[0]
 
-    def apply(self, results):
+            if Filter.Options.get(filt) != None:
+                if hasattr(NearEarthObject(), Filter.Options.get(filt)):
+                    ret["NEO"].append(opt)
+                elif hasattr(OrbitPath(), Filter.Options.get(filt)):
+                    ret["OP"].append(opt)
+            else:
+                print("LOG:", "Filter \"{}\" not found!".format(filt))
+        return ret
+
+    def apply(self, db):
         """
         Function that applies the filter operation onto a set of results
 
         :param results: List of Near Earth Object results
         :return: filtered list of Near Earth Object results
         """
-        # TODO: Takes a list of NearEarthObjects and applies the value of its filter operation to the results
+        filtered_neo = []
+        # counter intuitive parameter name (results), more like db or something
+        # results.NEOList # the dict in database
+        for key in db.NEOList:
+            neo = db[key]
+            f = Filter.Options.get(self.field)
+            o = Filter.Operators.get(self.operation)
+            if self.object == "NEO":
+                v = getattr(neo, f)
+                if o(v, ):
+                    filtered_neo.append(neo)
+            elif self.object == "OP":
+                op_list = neo.orbits
+                for i in range(len(op_list)):
+                    v = getattr(op_list[i], f)
+                    if o(v, self.value):
+                        neo.orbit_to_write = i
+                        filtered_neo.append(neo)
+                        # here we continue because we want only uniq neo
+                        # so if a neo have multiples orbits which meet
+                        # conditions neo will be added multiple times
+                        continue
+            else:
+                # Shouldn't ever happen here and usually I would create a log class
+                print("LOG:", "Object not matched")
+        return filtered_neo
 
 
 class NEOSearcher(object):
@@ -118,6 +199,18 @@ class NEOSearcher(object):
         :param query: Query.Selectors object with query information
         :return: Dataset of NearEarthObjects or OrbitalPaths
         """
+        # set some defaults in case attributes missing
+        # this may not be needed since some may already be a requirement when writing the command
+        # but for testing, I will go for it
+        n = query.number if query.number != None else 1
+        filters = query[2]
+
+        results = []
+        for f in filters:
+            results = f.apply(self.db)
+        return results
+
+        # print(query.date_search.values)
         # TODO: This is a generic method that will need to understand, using DateSearch, how to implement search
         # TODO: Write instance methods that get_objects can use to implement the two types of DateSearch your project
         # TODO: needs to support that then your filters can be applied to. Remember to return the number specified in

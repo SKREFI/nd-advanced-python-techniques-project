@@ -73,19 +73,23 @@ def verify_output_choice(choice):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Near Earth Objects (NEOs) Database')
+    parser = argparse.ArgumentParser(
+        description='Near Earth Objects (NEOs) Database')
     parser.add_argument('output', choices=OutputFormat.list(), type=verify_output_choice,
                         help='Select option for how to output the search results.')
     parser.add_argument('-r', '--return_object', choices=['NEO', 'Path'],
                         default='NEO', type=str,
                         help='Select entity data to return.')
-    parser.add_argument('-d', '--date', type=verify_date, help='YYYY-MM-DD format to find NEOs on the given date')
+    parser.add_argument('-d', '--date', type=verify_date,
+                        help='YYYY-MM-DD format to find NEOs on the given date')
     parser.add_argument('-s', '--start_date', type=verify_date,
                         help='YYYY-MM-DD format to find NEOs on the provided start date')
     parser.add_argument('-e', '--end_date', type=verify_date,
                         help='YYYY-MM-DD format to find NEOs up to the end date')
-    parser.add_argument('-n', '--number', type=int, help='Int representing max number of NEOs to return')
-    parser.add_argument('-f', '--filename', type=str, help='Name of input csv data file')
+    parser.add_argument('-n', '--number', type=int,
+                        help='Int representing max number of NEOs to return')
+    parser.add_argument('-f', '--filename', type=str,
+                        help='Name of input csv data file')
     parser.add_argument('--filter', nargs='+', help='Select filter options with filter value: '
                                                     'is_hazardous:[=]:bool, '
                                                     'diameter:[>=|=|<=]:float, '
@@ -93,8 +97,30 @@ if __name__ == '__main__':
                                                     'Input as: [option:operation:value] '
                                                     'e.g. diameter:>=:0.042')
 
+    # DUMMY TEST DATA
+    # parser.add_argument("--date", default="2020-01-01")
+    # parser.add_argument("--filename", default=None)
+    # parser.add_argument("--filter", nargs='+',
+    #                     default=["distance:>:74768000"])
+    # parser.add_argument("--number", default=10)
+    # parser.add_argument("--output", default="display")
+    # parser.add_argument("--return_object", default="NEO")
+    # parser.add_argument("--start_date", default=None)
+    # parser.add_argument("--end_date", default=None)
+
     args = parser.parse_args()
-    var_args = vars(args)
+    old_var_args = vars(args)
+
+    var_args = {
+        "date": "2020-01-01",
+        "filename": None,
+        "filter": ["distance:>:74768000"],
+        "number": 10,
+        "output": "display",
+        "return_object": "NEO",
+        "start_date": None,
+        "end_date": None,
+    }
 
     # Load Data
     if args.filename:
@@ -107,7 +133,8 @@ if __name__ == '__main__':
     try:
         db.load_data()
     except FileNotFoundError as e:
-        print(f'File {var_args.get("filename")} not found, please try another file name.')
+        print(
+            f'File {var_args.get("filename")} not found, please try another file name.')
         sys.exit()
     except Exception as e:
         print(Exception)
@@ -125,9 +152,10 @@ if __name__ == '__main__':
 
     # Output Results
     try:
+        output_filename = f'{PROJECT_ROOT}/data/neo_data_out.csv'
         result = NEOWriter().write(
-            data=results,
-            format=args.output,
+            args.output,
+            results
         )
     except Exception as e:
         print(e)
@@ -138,4 +166,3 @@ if __name__ == '__main__':
         print('Write successful.')
     else:
         print('Write unsuccessful.')
-

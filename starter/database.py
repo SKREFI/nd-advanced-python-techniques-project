@@ -25,7 +25,6 @@ class NEODatabase(object):
         # most of them have only one orbit, the biggest has 8 with the ID: 2164207
         self.OrbitList = []
 
-
     def __getitem__(self, key):
         return self.NEOList.get(key)
 
@@ -50,15 +49,21 @@ class NEODatabase(object):
                 i = r.get("id")
 
                 neo = {
-                    "id":i,
+                    "id": i,
                     "name": r.get("name"),
-                    "is_hazard": r['is_potentially_hazardous_asteroid'],
-                    "min_diam": r.get("estimated_diameter_min_kilometers"),
-                    "max_diam": r.get("estimated_diameter_max_kilometers")
+                    "is_hazard": r["is_potentially_hazardous_asteroid"],
+                    "min_diam": float(r.get("estimated_diameter_min_kilometers")),
+                    "max_diam": float(r.get("estimated_diameter_max_kilometers"))
                 }
 
                 # Mixed up a bit, previously I have build an other dict, now I am calling directly the constructor
-                op = OrbitPath(**r)
+                # id miss date speed
+                op = OrbitPath(**{
+                    "id": i,
+                    "miss": float(r["miss_distance_kilometers"]),
+                    "date": r["close_approach_date"],
+                    "speed": float(r["kilometers_per_second"])
+                })
                 self.OrbitList.append(op)
 
                 # I am giving the key value of id so I have acces to the object with __getitem__

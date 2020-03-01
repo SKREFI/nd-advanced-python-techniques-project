@@ -5,14 +5,17 @@ class NearEarthObject(object):
     # May add in the future if needed: kilometers_per_hour, [OrbitPath] close_approach_date, [OrbitPath] miss_distance_kilometers
     # It should not be the case to deafult them to None since every field shoud have those values, but just because I can I do it
     def __init__(self, **d):
+        # if d.get("min_diam") is None or d.get("max_diam") is None:
+        #     self.orbits = self.id = self.name = self.is_hazard = self.min_diam = self.max_diam = 1
+        #     print(self.min_diam)
+        # else:
+        self.orbit_to_write = 0
         self.orbits = []
-        self.id = int(d.get("id"))
+        self.id = d.get("id")
         self.name = d.get("name")
-        self.is_hazard = False
-        if d.get("is_hazard") == "True":
-            self.is_hazard = True
-        self.min_diam = float(d.get("min_diam"))
-        self.max_diam = float(d.get("max_diam"))
+        self.is_hazard = d.get("is_hazard")
+        self.min_diam = (d.get("min_diam"))
+        self.max_diam = (d.get("max_diam"))
 
     # def __getitem__(self, key):
     #     if key == "id":
@@ -50,9 +53,10 @@ class OrbitPath(object):
         :param kwargs:    dict of attributes about a given orbit, only a subset of attributes used
         """
         self.id = d.get("id")
-        self.miss = d.get("miss_distance_kilometers")
-        self.date = d.get("close_approach_date")
-        self.speed = (d.get("kilometers_per_hour"))
+        self.miss = (d.get("miss"))
+        self.date = d.get("date")
+        self.speed = (d.get("speed"))
+        # self.speed = (d.get("kilometers_per_hour"))
 
     def __repr__(self):
         return "\nMiss Distance/Date/Speed = {} | {} | {}".format(self.miss, self.date, self.speed)

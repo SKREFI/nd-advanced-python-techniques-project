@@ -26,6 +26,9 @@ class NEOWriter(object):
         self.output_format = OutputFormat.list()
 
     def write(self, format, data, **d):
+        # print("Format:", format)
+        # print("Data:", data)
+        # print("Dict:", d)
         """
         Generic write interface that, depending on the OutputFormat selected calls the
         appropriate instance write function
@@ -40,7 +43,7 @@ class NEOWriter(object):
             print(data)
             return True
         elif format == self.output_format[1]:  # format == csv_file
-            out_file = d.get("output_filename", "data/neo_data_results.csv")
+            out_file = d.get("output_filename", "data/neo_data_out.csv")
             with open(out_file, 'w') as f:
                 fieldnames = ["id", "name", "is_hazardous", "estimated_min_diameter",
                               "estiamted_max_diameter", "miss_distance", "approch_date", "speed"]
@@ -54,13 +57,11 @@ class NEOWriter(object):
                         "is_hazardous": neo.is_hazard,
                         "estimated_min_diameter": neo.min_diam,
                         "estiamted_max_diameter": neo.max_diam,
-                        "miss_distance": neo.orbits[0].miss,
-                        "approch_date": neo.orbits[0].date,
-                        "speed": neo.orbits[0].speed
+                        "miss_distance": neo.orbits[neo.orbit_to_write].miss,
+                        "approch_date": neo.orbits[neo.orbit_to_write].date,
+                        "speed": neo.orbits[neo.orbit_to_write].speed
                     })
                 return True
         else:
             print("FATAL: Format file unknown/unspecified")
             return False
-        # TODO: into instance methods for NEOWriter? Write instance methods that write() can call to do the necessary
-        # TODO: output format.
