@@ -28,7 +28,7 @@ query_selectors = Query(**{
     # "date": "2020-01-01",
     "filename": None,
     "number": 10,
-    "filter": ["is_hazardous:=:True"]
+    "filter": ["diameter:>:4"]
 }).build_query()
 
 results = NEOSearcher(db).get_objects(query_selectors)

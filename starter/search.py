@@ -82,7 +82,7 @@ class Filter(object):
     """
     # Personal wish to filter by id, good for debugging
     Options = {
-        "diameter": ["min_diam","max_diam"],
+        "diameter": ["min_diam", "max_diam"],
         "id": "id",
         "speed": "speed",
         "is_hazardous": "is_hazard",
@@ -128,8 +128,10 @@ class Filter(object):
 
         for opt in filter_options:
             filt = opt.split(":")[0]
-
-            if Filter.Options.get(filt) != None:
+            operation = opt.split(":")[1]
+            if filt == "diameter":
+                ret["NEO"].append(opt)
+            elif Filter.Options.get(filt) != None:
                 if hasattr(NearEarthObject(), Filter.Options.get(filt)):
                     ret["NEO"].append(opt)
                 elif hasattr(OrbitPath(), Filter.Options.get(filt)):
@@ -154,8 +156,15 @@ class Filter(object):
             for neo in neos:
                 f = Filter.Options.get(self.field)
                 o = Filter.Operators.get(self.operation)
+                print(self.value)
                 if self.object == "NEO":
-                    if o(getattr(neo, f), self.value):
+                    if self.field == "diameter" and self.operation == ">" or self.operation == ">=":
+                        if o(getattr(neo, f[0]), self.value):
+                            filtered_neo.append(neo)
+                    elif self.field == "diameter" and self.operation == "<" or self.operation == "<=":
+                        if o(getattr(neo, f[1]), self.value):
+                            filtered_neo.append(neo)
+                    elif o(getattr(neo, f), self.value):
                         filtered_neo.append(neo)
                 elif self.object == "OP":
                     for i in range(len(neo.orbits)):
@@ -170,8 +179,13 @@ class Filter(object):
                 f = Filter.Options.get(self.field)
                 o = Filter.Operators.get(self.operation)
                 if self.object == "NEO":
-                    v = getattr(neo, f)
-                    if o(v, self.value):
+                    if self.field == "diameter" and self.operation == ">" or self.operation == ">=":
+                        if o(getattr(neo, f[0]), self.value):
+                            filtered_neo.append(neo)
+                    elif self.field == "diameter" and self.operation == "<" or self.operation == "<=":
+                        if o(getattr(neo, f[1]), self.value):
+                            filtered_neo.append(neo)
+                    elif o(getattr(neo, f), self.value):
                         filtered_neo.append(neo)
                 elif self.object == "OP":
                     op_list = neo.orbits
