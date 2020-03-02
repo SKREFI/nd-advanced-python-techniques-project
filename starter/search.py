@@ -82,12 +82,12 @@ class Filter(object):
     """
     # Personal wish to filter by id, good for debugging
     Options = {
-        "diameter": ["min_diam", "max_diam"],
         "id": "id",
-        "speed": "speed",
         "is_hazardous": "is_hazard",
+        "diameter": ["min_diam", "max_diam"],
         "distance": "miss",
-        "date": "date"
+        "date": "date",
+        "speed": "speed"
     }
 
     Operators = {
@@ -140,65 +140,32 @@ class Filter(object):
                 print("LOG:", "Filter \"{}\" not found!".format(filt))
         return ret
 
-    def apply(self, **d):
-        db = d.get("database", None)
-        neos = d.get("filtered_list", None)
+    def apply(self, results, db):
         """
         Function that applies the filter operation onto a set of results
 
         :param results: List of Near Earth Object results
         :return: filtered list of Near Earth Object results
         """
-        filtered_neo = []
-        # counter intuitive parameter name (results), more like db or something
-        # results.NEOList # the dict in database
-        if db == None:
-            for neo in neos:
-                f = Filter.Options.get(self.field)
-                o = Filter.Operators.get(self.operation)
-                print(self.value)
-                if self.object == "NEO":
-                    if self.field == "diameter" and self.operation == ">" or self.operation == ">=":
-                        if o(getattr(neo, f[0]), self.value):
-                            filtered_neo.append(neo)
-                    elif self.field == "diameter" and self.operation == "<" or self.operation == "<=":
-                        if o(getattr(neo, f[1]), self.value):
-                            filtered_neo.append(neo)
-                    elif o(getattr(neo, f), self.value):
-                        filtered_neo.append(neo)
-                elif self.object == "OP":
-                    for i in range(len(neo.orbits)):
-                        if o(getattr(neo.orbits[i], f), self.value):
-                            neo.orbit_to_write = i
-                            filtered_neo.append(neo)
-                            continue
-            return filtered_neo
+        # Some explanations:
+        # I have branches, 1) if we have to look in the NEO object
+        #                       Here 2 more because we have a special field, :diameter:
+        #                             1) if the operation is > or >= we have to compare it with estimated_min_diameter
+        #                             2) if the operation is < or <= we have to compare it wiht estimated_MAX_diameter
+        #                  2) if we have to look in the OrbitPath object
+        f = Filter.Options.get(self.field)
+        o = Filter.Operators.get(self.operation)
+        if self.object == "NEO":
+            if self.field == "diameter":
+                if self.operation == ">" or self.operation == ">=":
+                    return [op for op in results if o(getattr(db[op.id], f[0]), self.value)]
+                else:
+                    return [op for op in results if o(getattr(db[op.id], f[1]), self.value)]
+            else:
+                return [op for op in results if o(getattr(db[op.id], f), self.value)]
         else:
-            for id in db.NEOList:
-                neo = db[id]
-                f = Filter.Options.get(self.field)
-                o = Filter.Operators.get(self.operation)
-                if self.object == "NEO":
-                    if self.field == "diameter" and self.operation == ">" or self.operation == ">=":
-                        if o(getattr(neo, f[0]), self.value):
-                            filtered_neo.append(neo)
-                    elif self.field == "diameter" and self.operation == "<" or self.operation == "<=":
-                        if o(getattr(neo, f[1]), self.value):
-                            filtered_neo.append(neo)
-                    elif o(getattr(neo, f), self.value):
-                        filtered_neo.append(neo)
-                elif self.object == "OP":
-                    op_list = neo.orbits
-                    for i in range(len(op_list)):
-                        v = getattr(op_list[i], f)
-                        if o(v, self.value):
-                            neo.orbit_to_write = i
-                            filtered_neo.append(neo)
-                            # here we continue because we want only uniq neo
-                            # so if a neo have multiples orbits which meet
-                            # conditions neo will be added multiple times
-                            continue
-            return filtered_neo
+            return [op for op in results if o(getattr(op, f), self.value)]
+        print("WARNING:", "No filters were applied at all.")
 
 
 class NEOSearcher(object):
@@ -216,6 +183,15 @@ class NEOSearcher(object):
         # TODO: What kind of an instance variable can we use to connect DateSearch to how we do search?
         # I am not sure of what you mean, I don't need anything else
 
+    def filterByDate(self, l, date_search):
+        """
+        :param l: List of orbits
+        """
+        if date_search.type == DateSearch.between:
+            return [op for op in l if date_search.values[0] <= op.date <= date_search.values[1]]
+        else:
+            return [op for op in l if date_search.values == op.date]
+
     def get_objects(self, query):
         """
         Generic search interface that, depending on the details in the QueryBuilder (query) calls the
@@ -227,29 +203,13 @@ class NEOSearcher(object):
         :param query: Query.Selectors object with query information
         :return: Dataset of NearEarthObjects or OrbitalPaths
         """
-        # set some defaults in case attributes missing
-        # this may not be needed since some may already be a requirement when writing the command
-        # but for testing, I will go for it
-        n = query.number if query.number != None else 1
+        # 'Selectors', ['date_search', 'number', 'filters', 'return_object'])
         filters = query[2]
 
-        results = []
-        if (query.date_search.type == DateSearch.equals):
-            f = Filter("date", "OP", "=", query.date_search.values)
-            results = f.apply(**{"database": self.db})
-        elif (query.date_search.type == DateSearch.between and query.date_search.values[0] and query.date_search.values[1]):
-            start_date = query.date_search.values[0]
-            end_date = query.date_search.values[1]
-            for id in self.db.NEOList:
-                for orbit in self.db[id].orbits:
-                    if start_date <= orbit.date <= end_date:
-                        results.append(self.db[id])
-        if len(filters):
-            if len(results) == 0:
-                results = filters[0].apply(**{"database": self.db})
-            else:
-                results = filters[0].apply(**{"filtered_list": results})
-            for i in range(1, len(filters)):
-                results = filters[i].apply(**{"filtered_list": results})
+        # Filtering by date
+        results = self.filterByDate(self.db.OrbitList, query.date_search)
 
-        return results[:query.number] if len(results) > 0 else None
+        for f in filters:
+            results = f.apply(results, self.db)
+
+        return results[:query.number]

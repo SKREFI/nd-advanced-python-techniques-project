@@ -73,8 +73,5 @@ class NEODatabase(object):
                     self.NEOList[i].orbits.append(op)
                 else:
                     self.NEOList[i].orbits.append(op)
-
-        # TODO: Load data from csv file.
-        # TODO: Where will the data be stored?
-
+                    
         return None

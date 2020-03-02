@@ -142,10 +142,7 @@ if __name__ == '__main__':
     # Output Results
     try:
         output_filename = f'{PROJECT_ROOT}/data/neo_data_out.csv'
-        result = NEOWriter().write(
-            args.output,
-            results
-        )
+        result = NEOWriter().write(args.output, results, db)
     except Exception as e:
         print(e)
         print('Write unsuccessful')

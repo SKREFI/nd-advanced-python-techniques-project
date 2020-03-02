@@ -21,16 +21,13 @@ db.load_data()
 
 # "distance:>:74768000"
 query_selectors = Query(**{
-    "output": "display",
-    "return_object": "NEO",
-    "start_date": "2020-01-05",
+    "output": "csv_file",
+    "start_date": "2020-01-01",
     "end_date": "2020-01-10",
-    # "date": "2020-01-01",
-    "filename": None,
+    # "date": "2020-01-02",
     "number": 10,
-    "filter": ["diameter:>:4"]
+    "filter": ["is_hazardous:=:False"]
 }).build_query()
 
 results = NEOSearcher(db).get_objects(query_selectors)
-(NEOWriter().write("csv_file", results,
-                   output_filename=output_filename))
+(NEOWriter().write("display", results, db))

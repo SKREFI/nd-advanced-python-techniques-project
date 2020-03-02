@@ -25,3 +25,7 @@ Bugs and Fixes I had so far:
 
 - Made it work in my_main.py, but not in the terminal, spent 2 hours debuggin to find out I have typed one more 0 for the filter
   therefor no NEO found
+
+- Refactoring almost all `search.py` file and rewrote everything much cleaner, efficient, and no bugs.
+
+My test case: python main.py display -n 5 --start_date 2020-01-09 --end_date 2020-01-10 --filter "is_hazardous:=:True" "speed:<:19" "speed:>:10"

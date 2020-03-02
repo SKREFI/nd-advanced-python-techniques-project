@@ -5,11 +5,6 @@ class NearEarthObject(object):
     # May add in the future if needed: kilometers_per_hour, [OrbitPath] close_approach_date, [OrbitPath] miss_distance_kilometers
     # It should not be the case to deafult them to None since every field shoud have those values, but just because I can I do it
     def __init__(self, **d):
-        # if d.get("min_diam") is None or d.get("max_diam") is None:
-        #     self.orbits = self.id = self.name = self.is_hazard = self.min_diam = self.max_diam = 1
-        #     print(self.min_diam)
-        # else:
-        self.orbit_to_write = 0
         self.orbits = []
         self.id = d.get("id")
         self.name = d.get("name")
@@ -56,7 +51,6 @@ class OrbitPath(object):
         self.miss = (d.get("miss"))
         self.date = d.get("date")
         self.speed = (d.get("speed"))
-        # self.speed = (d.get("kilometers_per_hour"))
 
     def __repr__(self):
         return "\nMiss Distance/Date/Speed = {} | {} | {}".format(self.miss, self.date, self.speed)
