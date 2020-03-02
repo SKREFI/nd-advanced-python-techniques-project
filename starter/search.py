@@ -11,9 +11,10 @@ class DateSearch(Enum):
     """
     Enum representing supported date search on Near Earth Objects.
     """
+
     between = 'between'
     equals = 'equals'
-
+    # method returning a list, position 0: between, position 1: equals
     @staticmethod
     def list():
         """
@@ -26,8 +27,19 @@ class Query(object):
     """
     Object representing the desired search query operation to build. The Query uses the Selectors
     to structure the query information into a format the NEOSearcher can use for date search.
+    
+    Some reminders for me or future reader of the code:
+    :param date_search: DateSearch object with type = [between, equals] and values = [date] if equals else [s_date, e_date].
+    :param ReturnObjects: Dictionary with 2 keys as str pointing to the two classes we have created to know where to look for for a certain attribute. 
+    
+    # Named tuples are exactly like objects but without methods
+    # Class Selectors with 4 fields:
+        - date_search is the DateSearch object explained above
+        - number: return results[:number]
+        - filters: List of Filter objects
+        - return_object: Not exactly sure, maybe it's a future I haven't implemented yet
     """
-
+    
     Selectors = namedtuple(
         'Selectors', ['date_search', 'number', 'filters', 'return_object'])
     DateSearch = namedtuple('DateSearch', ['type', 'values'])
@@ -80,7 +92,8 @@ class Filter(object):
     Object representing optional filter options to be used in the date search for Near Earth Objects.
     Each filter is one of Filter.Operators provided with a field to filter on a value.
     """
-    # Personal wish to filter by id, good for debugging
+
+    # Added id for debugging
     Options = {
         "id": "id",
         "is_hazardous": "is_hazard",

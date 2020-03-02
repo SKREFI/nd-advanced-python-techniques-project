@@ -12,18 +12,7 @@ class NearEarthObject(object):
         self.min_diam = (d.get("min_diam"))
         self.max_diam = (d.get("max_diam"))
 
-    # def __getitem__(self, key):
-    #     if key == "id":
-    #         return self.id
-    #     if key == "name":
-    #         return self.name
-    #     if key == "is_hazard":
-    #         return self.is_hazard
-    #     if key == "min_diam":
-    #         return self.min_diam
-    #     if key == "max_diam":
-    #         return self.max_diam
-
+    # Used mostly in debugging
     def __repr__(self):
         return "Orbits: {}\nId: {}\nName: {}\nIs Hazardous: {}\nMin Diameter: {}\nMax Diameter: {}".format(self.orbits, self.id, self.name, self.is_hazard, self.min_diam, self.max_diam)
 
@@ -52,5 +41,6 @@ class OrbitPath(object):
         self.date = d.get("date")
         self.speed = (d.get("speed"))
 
+    # Used mostly in debugging
     def __repr__(self):
         return "\nMiss Distance/Date/Speed = {} | {} | {}".format(self.miss, self.date, self.speed)

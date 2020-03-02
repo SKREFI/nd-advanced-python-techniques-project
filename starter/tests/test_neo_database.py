@@ -40,7 +40,8 @@ class TestNEOSearchUseCases(unittest.TestCase):
 
     def test_find_unique_number_neos_on_date(self):
         self.db.load_data()
-        query_selectors = Query(number=10, date=self.start_date, return_object='NEO').build_query()
+        query_selectors = Query(
+            number=10, date=self.start_date, return_object='NEO').build_query()
         results = NEOSearcher(self.db).get_objects(query_selectors)
 
         # Confirm 10 results and 10 unique results
@@ -69,7 +70,8 @@ class TestNEOSearchUseCases(unittest.TestCase):
 
         # Confirm 4 results and 4 unique results
         self.assertEqual(len(results), 4)
-        neo_ids = list(filter(lambda neo: neo.diameter_min_km > 0.042, results))
+        neo_ids = list(
+            filter(lambda neo: neo.diameter_min_km > 0.042, results))
         neo_ids = set(map(lambda neo: neo.name, results))
         self.assertEqual(len(neo_ids), 4)
 
@@ -83,7 +85,8 @@ class TestNEOSearchUseCases(unittest.TestCase):
 
         # Confirm 10 results and 10 unique results
         self.assertEqual(len(results), 10)
-        neo_ids = list(filter(lambda neo: neo.diameter_min_km > 0.042, results))
+        neo_ids = list(
+            filter(lambda neo: neo.diameter_min_km > 0.042, results))
         diameter = set(map(lambda neo: neo.diameter_min_km, results))
         neo_ids = set(map(lambda neo: neo.name, results))
         self.assertEqual(len(neo_ids), 10)
@@ -123,7 +126,8 @@ class TestNEOSearchUseCases(unittest.TestCase):
         self.db.load_data()
         query_selectors = Query(
             number=10, date=self.start_date, return_object='NEO',
-            filter=["diameter:>:0.042", "is_hazardous:=:True", "distance:>:234989"]
+            filter=["diameter:>:0.042",
+                    "is_hazardous:=:True", "distance:>:234989"]
         ).build_query()
         results = NEOSearcher(self.db).get_objects(query_selectors)
 
@@ -140,7 +144,8 @@ class TestNEOSearchUseCases(unittest.TestCase):
         query_selectors = Query(
             number=10, start_date=self.start_date, end_date=self.end_date,
             return_object='NEO',
-            filter=["diameter:>:0.042", "is_hazardous:=:True", "distance:>:234989"]
+            filter=["diameter:>:0.042",
+                    "is_hazardous:=:True", "distance:>:234989"]
         ).build_query()
         results = NEOSearcher(self.db).get_objects(query_selectors)
 
