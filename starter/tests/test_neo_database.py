@@ -96,7 +96,11 @@ class TestNEOSearchUseCases(unittest.TestCase):
         # Confirm 4 results and 4 unique results
         self.assertEqual(len(results), 4)
         neo_ids = list(
+<<<<<<< HEAD
             filter(lambda neo: neo.min_diam > 0.042, results))
+=======
+            filter(lambda neo: neo.diameter_min_km > 0.042, results))
+>>>>>>> 7ec5f3737ffbd15fa1fa63cfcd7715780508a161
         neo_ids = set(map(lambda neo: neo.name, results))
         self.assertEqual(len(neo_ids), 4)
 
@@ -111,8 +115,13 @@ class TestNEOSearchUseCases(unittest.TestCase):
         # Confirm 10 results and 10 unique results
         self.assertEqual(len(results), 10)
         neo_ids = list(
+<<<<<<< HEAD
             filter(lambda neo: neo.min_diam > 0.042, results))
         diameter = set(map(lambda neo: neo.min_diam, results))
+=======
+            filter(lambda neo: neo.diameter_min_km > 0.042, results))
+        diameter = set(map(lambda neo: neo.diameter_min_km, results))
+>>>>>>> 7ec5f3737ffbd15fa1fa63cfcd7715780508a161
         neo_ids = set(map(lambda neo: neo.name, results))
         self.assertEqual(len(neo_ids), 10)
 
