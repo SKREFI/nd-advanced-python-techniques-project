@@ -212,4 +212,5 @@ class NEOSearcher(object):
         for f in filters:
             results = f.apply(results, self.db)
 
+
         return results[:query.number]
