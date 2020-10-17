@@ -34,27 +34,6 @@ exporting to a csv file
 
 `./main.py csvfile -n 10 -f new_neo_data.csv --start_date 2020-01-01 --end_date 2020-01-10 --filter distance:>=:5`
 
-## Requirements
-
-The Near Earth Object Database you are creating is a searchable database that, given a csv file of Near Earth Objects data, can perform
-data searches. All data results should be able to be displayed to the terminal or output to a csv file.
-
-Search Requirements:
-
-   1.  Find up to some number of unique NEOs on a given date or between start date and end date.
-   2.  Find up to some number of unique NEOs on a given date or between start date and end date larger than X kilometers.
-   3.  Find up to some number of unique NEOs on a given date or between start date and end date larger than X kilometers
-       that were hazardous.
-   4.  Find up to some number of unique NEOs on a given date or between start date and end date larger than X kilometers
-       that were hazardous and within X kilometers from Earth.
-
-To achieve this functionality the project should include Python objects that represent:
-- Near Earth Objects
-- Orbit Paths
-- A container object for the Near Earth Objects and Orbit Paths
-- An object to perform the data search on the container
-- An object to write the output format of the search results
-
 ## Near Earth Object Data
 
 Each row in the `neo_data.csv` represents a single orbit path for a Near Earth Object on a given date.
